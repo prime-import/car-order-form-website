@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Подбор автомобиля</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Inter',sans-serif;
+  background:#f6f7fb;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px;
+}
+
+.card{
+  background:#fff;
+  width:100%;
+  max-width:400px;
+  padding:24px 20px;
+  border-radius:18px;
+  box-shadow:0 15px 30px rgba(0,0,0,0.08);
+}
+
+h1{text-align:center;font-size:24px;margin-bottom:6px;}
+.subtitle{text-align:center;font-size:13px;color:#777;margin-bottom:20px;}
+.field{margin-bottom:14px;}
+label{display:block;font-size:13px;margin-bottom:4px;color:#666;}
+
+input,select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+
+input:focus,select:focus{
+  outline:none;
+  border-color:#ff6b00;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  margin-top:6px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#ff6b00,#ff8a33);
+  color:#fff;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button:hover{opacity:0.9;}
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+input[type=number]{-moz-appearance:textfield;}
+
+/* ===== МОДАЛЬНОЕ ОКНО ===== */
+#successModal{
+  display:none;
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.55);
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.modal-box{
+  background:#fff;
+  padding:36px 30px;
+  border-radius:20px;
+  text-align:center;
+  max-width:360px;
+  width:90%;
+  box-shadow:0 25px 50px rgba(0,0,0,0.25);
+  animation:fadeIn 0.3s ease;
+}
+
+.modal-box h2{
+  font-size:22px;
+  margin-bottom:12px;
+}
+
+.modal-box p{
+  font-size:14px;
+  color:#666;
+  margin-bottom:20px;
+}
+
+.modal-box button{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  background:linear-gradient(135deg,#ff6b00,#ff8a33);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+}
+
+@keyframes fadeIn{
+  from{transform:scale(0.9);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h1>Подбор автомобиля</h1>
+<div class="subtitle">Авто из США, Китая и Кореи под ваш бюджет</div>
+
+<form id="carForm">
+
+<div class="field">
+<label>Имя</label>
+<input id="name" type="text" required>
+</div>
+
+<div class="field">
+<label>Телефон</label>
+<input id="phone" type="tel" required>
+</div>
+
+<div class="field">
+<label>Telegram</label>
+<input id="telegram" type="text">
+</div>
+
+<div class="field">
+<label>Страна покупки автомобиля</label>
+<select id="country" required>
+<option value="">Выберите страну</option>
+<option value="США">США</option>
+<option value="Корея">Корея</option>
+<option value="Китай">Китай</option>
+<option value="Не определился">Не определился</option>
+</select>
+</div>
+
+<div class="field">
+<label>В какой город доставить автомобиль</label>
+<input id="city" type="text">
+</div>
+
+<div class="field">
+<label>Марка / модель</label>
+<input list="carOptions" id="car" placeholder="Например: BMW X5 или выберите">
+<datalist id="carOptions">
+<option value="Не определился">
+</datalist>
+</div>
+
+<div class="field">
+<label>Бюджет (₽)</label>
+<input id="budget" type="number" inputmode="numeric" min="0" step="1" placeholder="">
+</div>
+
+<button type="submit">Оставить заявку</button>
+
+</form>
+</div>
+
+<!-- Модальное окно -->
+<div id="successModal">
+  <div class="modal-box">
+    <h2>Заявка отправлена!</h2>
+    <p>Менеджер свяжется с вами в ближайшее время</p>
+    <button id="closeModal">ОК</button>
+  </div>
+</div>
+
+<script>
+document.getElementById('carForm').addEventListener('submit', function(e){
+  e.preventDefault();
+
+  const name=document.getElementById('name').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const telegram=document.getElementById('telegram').value.trim();
+  const country=document.getElementById('country').value.trim();
+  const city=document.getElementById('city').value.trim();
+  const car=document.getElementById('car').value.trim();
+  const budget=document.getElementById('budget').value.trim();
+
+  const WEBHOOK='https://b24-ynu924.bitrix24.ru/rest/1/oj5dbvbaueer7z1g/crm.lead.add.json';
+
+  fetch(WEBHOOK,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      fields:{
+        TITLE:'Заявка: '+name,
+        NAME:name,
+        SOURCE_ID: 15, // Веб-сайт
+        PHONE:[{VALUE:phone,VALUE_TYPE:'WORK'}],
+        COMMENTS:
+          'Telegram: '+telegram+'\n'+
+          'Страна покупки: '+country+'\n'+
+          'Город доставки: '+city+'\n'+
+          'Марка / модель: '+car+'\n'+
+          'Бюджет: '+budget+' ₽'
+      }
+    })
+  })
+  .then(res=>{
+    if(res.ok){
+      document.getElementById('carForm').reset();
+      document.getElementById('successModal').style.display='flex';
+    }
+  });
+});
+
+document.getElementById('closeModal').addEventListener('click', function(){
+  document.getElementById('successModal').style.display='none';
+});
+</script>
+
+</body>
+</html>
